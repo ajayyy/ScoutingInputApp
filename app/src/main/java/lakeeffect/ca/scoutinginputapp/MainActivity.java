@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
 //        parse("2708,2,0,0,0,0,0,0,1,0,0,1,1,1,0,HELLO", this);
 
+        //TODO MAKE THIS SUPPORT MULTIPLE DEVICES PLUS INFO VIEW
+
         final BluetoothAdapter ba = BluetoothAdapter.getDefaultAdapter();
         Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(turnOn, 0);
