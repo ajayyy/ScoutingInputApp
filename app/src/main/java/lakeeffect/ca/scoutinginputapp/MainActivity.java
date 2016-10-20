@@ -9,13 +9,20 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnMultiChoiceClickListener;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -40,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(turnOn, 0);
 
         Set<BluetoothDevice> pairedDevices = ba.getBondedDevices();
-        final BluetoothDevice[] devices = (BluetoothDevice[]) pairedDevices.toArray(new BluetoothDevice[0]);
+        final BluetoothDevice[] devices = pairedDevices.toArray(new BluetoothDevice[0]);
         String[] names = new String[devices.length];
         if (pairedDevices.size() > 0) {
             for (int i=0;i<devices.length;i++) {
@@ -56,8 +63,9 @@ public class MainActivity extends AppCompatActivity {
                                 public void run(){
                                     OutputStream out = null;
                                     InputStream in = null;
+                                    BluetoothSocket bluetoothsocket = null;
                                     try {
-                                        BluetoothSocket bluetoothsocket = devices[which].createRfcommSocketToServiceRecord(UUID.fromString("6ba6afdc-6a0a-4b1d-a2bf-f71ac108b636"));
+                                        bluetoothsocket = devices[which].createRfcommSocketToServiceRecord(UUID.fromString("6ba6afdc-6a0a-4b1d-a2bf-f71ac108b636"));
                                         bluetoothsocket.connect();
                                         out = bluetoothsocket.getOutputStream();
                                         in = bluetoothsocket.getInputStream();
@@ -72,23 +80,26 @@ public class MainActivity extends AppCompatActivity {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-
-                                    while(out != null && in != null){
+                                    String data = "";
+                                    Log.d("HELLO", "KJLDJJLADS");
+                                    while(out != null && in != null && bluetoothsocket.isConnected()){
+                                        Log.d("HELLO", "");
                                         try {
 
-                                            Toast.makeText(MainActivity.this, "1",
-                                                    Toast.LENGTH_LONG).show();
                                             byte[] bytes = new byte[1000000];
-                                            Toast.makeText(MainActivity.this, "2",
-                                                    Toast.LENGTH_LONG).show();
                                             int amount = in.read(bytes);
-                                            if(amount>0)  bytes = Arrays.copyOfRange(bytes, 0, in.read(bytes) - 1);//puts data into bytes and cuts bytes
+                                            if(amount>0)  bytes = Arrays.copyOfRange(bytes, 0, amount);//puts data into bytes and cuts bytes
+                                            else continue;
+                                            String message = new String(bytes, Charset.forName("UTF-8"));
                                             if (bytes.length > 0){
-                                                parse(String.valueOf(bytes), MainActivity.this);
-                                            } else{
-                                                Toast.makeText(MainActivity.this, "EMPTY",
-                                                        Toast.LENGTH_LONG).show();
+                                                parse(data + message);
+                                                out.write("done".getBytes(Charset.forName("UTF-8")));
+                                                data = "";
+                                            }else{
+                                                data += message;
                                             }
+                                            final byte[] bytes2 = bytes;
+                                            Log.d("HELLO", "KJLDJJLADS" + bytes);
 
                                         } catch (IOException e) {
                                             e.printStackTrace();
@@ -96,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                     }
+                                    Log.d("HELLO", "KJLDJJLADS sssssss");
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -122,31 +134,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void parse(String in, Context context){
+    public void parse(String data){
 
-        final String data[] = in.split(",");
+        File sdCard = Environment.getExternalStorageDirectory();
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-//                Toast.makeText(MainActivity.this, "PARSE",
-//                        Toast.LENGTH_LONG).show();
-                Toast.makeText(MainActivity.this, data[0],
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(MainActivity.this, data[1],
-                        Toast.LENGTH_LONG).show();
-                Toast.makeText(MainActivity.this, data[2],
-                        Toast.LENGTH_LONG).show();
+        File file = new File(sdCard.getPath() + "/ScoutingData/" + data.split(":")[0] + ".txt");
+
+        data = data.split(":")[1];
+
+        try {
+            file.getParentFile().mkdirs();
+            if (!file.exists()) {
+                file.createNewFile();
             }
-        });
-//
-//        try {
-//            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(Environment.getExternalStorageDirectory().getAbsolutePath()+""+data[0]+""+data[1]+".txt", Context.MODE_PRIVATE));
-//            outputStreamWriter.write(in);
-//            outputStreamWriter.close();
-//        }
-//        catch (IOException e) {
-//            Log.e("Exception", "File write failed: " + e.toString());
-//        }
+
+            FileOutputStream f = new FileOutputStream(file, true);
+
+            OutputStreamWriter out = new OutputStreamWriter(f);
+
+            out.write(data);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "Saved",
+                            Toast.LENGTH_LONG).show();
+                }
+            });
+
+            out.close();
+            f.close();
+        }catch(IOException e){
+            e.printStackTrace();
+        }
     }
 }
