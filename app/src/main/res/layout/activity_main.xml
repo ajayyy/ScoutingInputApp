@@ -22,8 +22,8 @@
         android:layout_height="wrap_content"
         android:inputType="number"
         android:ems="10"
-        android:id="@+id/editText"
-        android:layout_above="@+id/button2"
+        android:id="@+id/robotnum"
+        android:layout_above="@+id/search"
         android:layout_centerHorizontal="true" />
 
     <Button
@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Search For Robot Data"
-        android:id="@+id/button2"
+        android:id="@+id/search"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
