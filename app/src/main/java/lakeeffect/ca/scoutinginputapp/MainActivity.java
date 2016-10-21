@@ -53,12 +53,30 @@ public class MainActivity extends AppCompatActivity {
 
         Button check = ((Button) findViewById(R.id.search));
         final EditText robotNum = ((EditText) findViewById(R.id.robotnum));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, String.valueOf(robotNum==null),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
         check.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 File sdcard = Environment.getExternalStorageDirectory();
-                File file = new File(sdcard,"ScoutingData/" + robotNum +  ".txt");
+                File file = new File(sdcard.getPath() + "/ScoutingData/" + robotNum.getText() +  ".txt");
                 StringBuilder text = new StringBuilder();
+                if (!file.exists()) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                                Toast.makeText(MainActivity.this, "File does not exist yet",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                    return;
+                }
 
                 try {
                     BufferedReader br = new BufferedReader(new FileReader(file));
@@ -72,31 +90,36 @@ public class MainActivity extends AppCompatActivity {
                             continue;
                         }
                         text.append(line);
-                        text.append('\n');
+                        text.append("\n");
                     }
                     br.close();
                 }catch (IOException e) {
                     e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "ERROR IOEXCEPTION!",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+
                 }
-                String[] data = text.toString().split("end");
+                final String[] data = text.toString().split("end");
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         setContentView(R.layout.search_robots);
+                        searchopen = true;
+                        for(int i=0;i<data.length;i++){
+                            final String parsedData = parse(data[i]);
+                            RelativeLayout layout = ((RelativeLayout) getLayoutInflater().inflate(R.layout.search_robots, null));
+                            TextView textview = new TextView(MainActivity.this);
+                            textview.setText(parsedData);
+                            layout.addView(textview);
+                        }
                     }
                 });
-                for(int i=0;i<data.length;i++){
-                    final String parsedData = parse(data[i]);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            RelativeLayout layout = ((RelativeLayout) getLayoutInflater().inflate(R.layout.search_robots, null));
-//                            new TextView
-//                            layout.addView();
-                        }
-                    });
-                }
             }
         });
 
@@ -194,6 +217,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed(){
+        if(searchopen){
+            setContentView(R.layout.activity_main);
+            searchopen = false;
+        }
     }
 
     @Override
