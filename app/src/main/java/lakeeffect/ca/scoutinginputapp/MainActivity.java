@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -78,6 +79,24 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 String[] data = text.toString().split("end");
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setContentView(R.layout.search_robots);
+                    }
+                });
+                for(int i=0;i<data.length;i++){
+                    final String parsedData = parse(data[i]);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            RelativeLayout layout = ((RelativeLayout) getLayoutInflater().inflate(R.layout.search_robots, null));
+//                            new TextView
+//                            layout.addView();
+                        }
+                    });
+                }
             }
         });
 
