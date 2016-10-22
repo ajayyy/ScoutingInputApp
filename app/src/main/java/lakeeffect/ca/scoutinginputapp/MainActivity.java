@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                 }
-                final String[] data = text.toString().split("end");
+                final String[] data = text.toString().split("stop");
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -240,7 +240,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String parse(String string){
-        String[] data = string.split("\n")[1].split(","); //auto
+        Log.d("dssdsd",string + "\n" + string.split("\n")[0]);
+        String[] data = string.split("\r")[1].split(","); //auto
         String message = "Available: ";
         ArrayList<Integer> available = new ArrayList<>();
 
